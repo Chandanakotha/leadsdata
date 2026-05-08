@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
   - name: leads
     description: Lead management
   - name: templates
@@ -21,6 +23,60 @@ tags:
   - name: cron
     description: Scheduler and automation
 paths:
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current auth status
+      responses:
+        "200":
+          description: Auth status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with admin password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+              required: [password]
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthStatus"
+        "401":
+          description: Invalid password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthStatus"
   /healthz:
     get:
       operationId: healthCheck
@@ -613,6 +669,15 @@ components:
         - emailsFailed
         - successRate
         - recentlySent
+
+    AuthStatus:
+      type: object
+      properties:
+        authenticated:
+          type: boolean
+        authRequired:
+          type: boolean
+      required: [authenticated, authRequired]
 
     CronStatus:
       type: object

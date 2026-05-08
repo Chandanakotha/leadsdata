@@ -141,6 +141,11 @@ export interface DashboardStats {
   recentlySent: number;
 }
 
+export interface AuthStatus {
+  authenticated: boolean;
+  authRequired: boolean;
+}
+
 export interface CronStatus {
   isRunning: boolean;
   intervalHours: number;
@@ -172,6 +177,10 @@ export interface ActivityItem {
   leadEmail: string | null;
   timestamp: string;
 }
+
+export type LoginBody = {
+  password: string;
+};
 
 export type GetLeadsParams = {
   search?: string;

@@ -1,7 +1,10 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Users, FileText, Activity } from "lucide-react";
+import { LayoutDashboard, Users, FileText, Activity, LogOut } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider } from "@/components/ui/sidebar";
+import { useLogout, useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const navItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -12,8 +15,20 @@ const navItems = [
 
 export default function Layout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
+  const queryClient = useQueryClient();
+  const { data: me } = useGetMe();
+  const logoutMutation = useLogout();
 
   const currentItem = navItems.find(item => item.href === location) || navItems[0];
+
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+        toast.success("Signed out");
+      },
+    });
+  };
 
   return (
     <SidebarProvider>
@@ -27,7 +42,7 @@ export default function Layout({ children }: { children: ReactNode }) {
               Outreach
             </div>
           </SidebarHeader>
-          <SidebarContent>
+          <SidebarContent className="flex flex-col justify-between h-full">
             <SidebarMenu className="px-2 py-4 gap-1">
               {navItems.map((item) => {
                 const isActive = location === item.href;
@@ -43,6 +58,19 @@ export default function Layout({ children }: { children: ReactNode }) {
                 );
               })}
             </SidebarMenu>
+
+            {me?.authRequired && (
+              <div className="px-2 pb-4">
+                <button
+                  onClick={handleLogout}
+                  disabled={logoutMutation.isPending}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                >
+                  <LogOut size={16} />
+                  <span>Sign out</span>
+                </button>
+              </div>
+            )}
           </SidebarContent>
         </Sidebar>
 
