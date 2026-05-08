@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { db, leadsTable, emailTemplatesTable, activityLogTable, emailLogsTable } from "@workspace/db";
 import { renderTemplate, sendEmail } from "./email";
 import { logger } from "./logger";
@@ -50,10 +50,10 @@ export async function runEmailJob(): Promise<{ sent: number; failed: number; mes
   const pendingLeads = await db
     .select()
     .from(leadsTable)
-    .where(eq(leadsTable.status, "pending"));
+    .where(or(eq(leadsTable.status, "pending"), eq(leadsTable.status, "failed")));
 
   if (pendingLeads.length === 0) {
-    const msg = "No pending leads — nothing to send";
+    const msg = "No pending or failed leads — nothing to send";
     logger.info(msg);
     state.lastResult = msg;
     return { sent: 0, failed: 0, message: msg };

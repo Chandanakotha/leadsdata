@@ -1,0 +1,7 @@
+[build]
+builder = "nixpacks"
+buildCommand = "pnpm install --frozen-lockfile && node build.mjs"
+
+[deploy]
+startCommand = "node dist/index.mjs"
+restartPolicyType = "always"
