@@ -18,6 +18,8 @@ tags:
     description: Email sending and tracking
   - name: dashboard
     description: Dashboard stats and activity
+  - name: cron
+    description: Scheduler and automation
 paths:
   /healthz:
     get:
@@ -306,6 +308,32 @@ paths:
               schema:
                 $ref: "#/components/schemas/DashboardStats"
 
+  /cron/status:
+    get:
+      operationId: getCronStatus
+      tags: [cron]
+      summary: Get scheduler status
+      responses:
+        "200":
+          description: Scheduler status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CronStatus"
+
+  /cron/trigger:
+    post:
+      operationId: triggerCron
+      tags: [cron]
+      summary: Manually trigger the email scheduler
+      responses:
+        "200":
+          description: Trigger result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendResult"
+
   /dashboard/activity:
     get:
       operationId: getDashboardActivity
@@ -585,6 +613,26 @@ components:
         - emailsFailed
         - successRate
         - recentlySent
+
+    CronStatus:
+      type: object
+      properties:
+        isRunning:
+          type: boolean
+        intervalHours:
+          type: integer
+        lastRun:
+          type: ["string", "null"]
+        nextRun:
+          type: ["string", "null"]
+        lastResult:
+          type: ["string", "null"]
+      required:
+        - isRunning
+        - intervalHours
+        - lastRun
+        - nextRun
+        - lastResult
 
     ActivityItem:
       type: object

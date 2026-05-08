@@ -231,6 +231,26 @@ export const GetDashboardStatsResponse = zod.object({
 });
 
 /**
+ * @summary Get scheduler status
+ */
+export const GetCronStatusResponse = zod.object({
+  isRunning: zod.boolean(),
+  intervalHours: zod.number(),
+  lastRun: zod.string().nullable(),
+  nextRun: zod.string().nullable(),
+  lastResult: zod.string().nullable(),
+});
+
+/**
+ * @summary Manually trigger the email scheduler
+ */
+export const TriggerCronResponse = zod.object({
+  sent: zod.number(),
+  failed: zod.number(),
+  message: zod.string(),
+});
+
+/**
  * @summary Get recent activity feed
  */
 export const getDashboardActivityQueryLimitDefault = 10;

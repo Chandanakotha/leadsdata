@@ -141,6 +141,17 @@ export interface DashboardStats {
   recentlySent: number;
 }
 
+export interface CronStatus {
+  isRunning: boolean;
+  intervalHours: number;
+  /** @nullable */
+  lastRun: string | null;
+  /** @nullable */
+  nextRun: string | null;
+  /** @nullable */
+  lastResult: string | null;
+}
+
 export type ActivityItemType =
   (typeof ActivityItemType)[keyof typeof ActivityItemType];
 

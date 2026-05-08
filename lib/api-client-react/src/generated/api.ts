@@ -19,6 +19,7 @@ import type {
 import type {
   ActivityItem,
   CreateLeadBody,
+  CronStatus,
   DashboardStats,
   EmailLogsPage,
   EmailTemplate,
@@ -1216,6 +1217,162 @@ export function useGetDashboardStats<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Get scheduler status
+ */
+export const getGetCronStatusUrl = () => {
+  return `/api/cron/status`;
+};
+
+export const getCronStatus = async (
+  options?: RequestInit,
+): Promise<CronStatus> => {
+  return customFetch<CronStatus>(getGetCronStatusUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCronStatusQueryKey = () => {
+  return [`/api/cron/status`] as const;
+};
+
+export const getGetCronStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCronStatus>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getCronStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCronStatusQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCronStatus>>> = ({
+    signal,
+  }) => getCronStatus({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCronStatus>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCronStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCronStatus>>
+>;
+export type GetCronStatusQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get scheduler status
+ */
+
+export function useGetCronStatus<
+  TData = Awaited<ReturnType<typeof getCronStatus>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getCronStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCronStatusQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Manually trigger the email scheduler
+ */
+export const getTriggerCronUrl = () => {
+  return `/api/cron/trigger`;
+};
+
+export const triggerCron = async (
+  options?: RequestInit,
+): Promise<SendResult> => {
+  return customFetch<SendResult>(getTriggerCronUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getTriggerCronMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof triggerCron>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof triggerCron>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["triggerCron"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof triggerCron>>,
+    void
+  > = () => {
+    return triggerCron(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type TriggerCronMutationResult = NonNullable<
+  Awaited<ReturnType<typeof triggerCron>>
+>;
+
+export type TriggerCronMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Manually trigger the email scheduler
+ */
+export const useTriggerCron = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof triggerCron>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof triggerCron>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getTriggerCronMutationOptions(options));
+};
 
 /**
  * @summary Get recent activity feed
