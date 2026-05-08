@@ -1,0 +1,107 @@
+Generate the COMPLETE production-ready full-stack project repository for this application.
+
+IMPORTANT REQUIREMENTS:
+
+* Generate EVERYTHING fully complete.
+* Do NOT give partial code.
+* Do NOT skip files.
+* Do NOT give placeholders like "implement here".
+* Do NOT simplify features.
+* Do NOT ask follow-up questions.
+* Do NOT omit configuration files.
+* Generate all files with correct paths and complete code.
+
+I want a fully deployable GitHub-ready project structure that works after:
+
+npm install
+npm run dev
+
+The project must include:
+
+* Full Next.js 15 App Router application
+* TypeScript
+* Tailwind CSS
+* shadcn/ui
+* Supabase integration
+* Resend integration
+* Upstash/Vercel Cron automation
+* Excel/CSV upload using xlsx
+* Dark professional SaaS UI
+* Responsive design
+* Clean production-level architecture
+* Proper folder structure
+* Loading states
+* Toast notifications
+* Error handling
+* API routes
+* Cron jobs
+* Environment validation
+* README.md
+* .env.example
+* .gitignore
+* vercel.json
+* Reusable components
+* Proper TypeScript types
+* Deployment-ready configuration
+
+The repository must include:
+
+1. Complete folder structure
+2. All frontend pages
+3. All backend APIs
+4. Database queries
+5. Utility/helper files
+6. Supabase client setup
+7. Email sending logic
+8. Scheduler logic
+9. Excel parsing logic
+10. CSV export logic
+11. Retry failed emails feature
+12. Manual send feature
+13. Search/filter/pagination
+14. Recent activity section
+15. Email preview section
+16. Production-ready README setup guide
+
+UI REQUIREMENTS:
+
+* Modern SaaS dashboard style
+* Similar polish to Vercel/Linear/Supabase dashboards
+* Dark theme
+* Minimal clean design
+* Soft borders
+* Elegant cards/tables/forms
+* Lucide icons
+* Smooth UX
+
+CODE QUALITY REQUIREMENTS:
+
+* Modular scalable architecture
+* Production-level code
+* No dummy placeholders
+* No pseudo code
+* Proper async handling
+* Clean reusable components
+* Beginner-friendly structure
+* Well-commented important sections
+
+Generate the entire repository file-by-file using this format:
+
+/app/page.tsx
+
+```tsx
+code here
+```
+
+/components/dashboard/stats-card.tsx
+
+```tsx
+code here
+```
+
+Continue until EVERY file is fully generated.
+
+PROJECT SPECIFICATION:
+
+[paste your full original project prompt here]
+Build a full-stack Email Marketing Automation web app using Next.js 15 (App Router), Tailwind CSS, Supabase, Resend, Upstash Workflow/Cron, and deploy on Vercel. Project Goal: This app is for cold email outreach and recruiter/company outreach automation. Important: * UI must be simple, clean, modern, professional dark theme. * Use responsive design. * Use proper folder structure and clean code. * Use environment variables from .env.local. * I already configured: * Supabase project * Supabase table * Sample Excel sheet * Resend API * All keys in .env.local * Do NOT ask me to configure these again. * Give complete working code. Tech Stack: * Next.js 15 App Router * TypeScript * Tailwind CSS * Supabase * Resend * Upstash Cron/Workflow * Pandas equivalent in JS using xlsx package * Vercel deployment ready Features Required: 1. Home Dashboard Create a professional dark dashboard. Top Heading: “Leads Dashboard” Dashboard Cards: * Total Leads * Emails Sent * Pending Emails * Failed Emails Below cards: Create a lead form inside a clean dark card. Lead Form Fields: * Name * Email * Phone Number * Company * Source Buttons: * Add Lead * Upload Excel Excel Upload: * Upload .xlsx or .csv file * Parse file using xlsx package * Bulk insert into Supabase 2. Leads Table On same page below form: Show all leads in a table. Columns: * Name * Email * Phone * Company * Source * Status * Created At Status values: * pending * sent * failed Features: * Search leads * Pagination * Filter by status * Refresh button 3. Email Template Management Create another section/page called: “Email Template” Features: * Rich textarea editor * Save template in Supabase * One global template for all emails * Variables support: * {{name}} * {{company}} Example: Hello {{name}}, I came across {{company}} ... When sending emails: replace variables dynamically. 4. Email Sending Automation Create scheduler logic. Requirements: * Run automatically every 1 hour using Upstash Cron or Vercel Cron. * Fetch all leads where: status = pending OR failed * Send emails using Resend. * Use saved template. * Update status: * sent if successful * failed if error Also save: * sent_at * error_message 5. API Routes Create proper API routes: * /api/leads * /api/upload * /api/template * /api/send-emails * /api/cron Use server actions or route handlers properly. 6. Supabase Tables Table: leads Columns: * id * name * email * phone * company * source * status * sent_at * error_message * created_at Table: email_templates Columns: * id * subject * body * updated_at 7. UI Design Requirements Theme: * Dark professional SaaS style Colors: * Dark background * Soft borders * Modern cards * Clean typography Use: * Tailwind CSS * shadcn/ui components * Lucide icons Add: * Loading states * Toast notifications * Empty states * Error handling 8. Code Quality * Modular folder structure * Reusable components * Clean TypeScript * Proper comments * Environment validation * Proper async handling 9. Deployment Make app fully Vercel ready. Include: * vercel.json if needed * Environment variable usage * Upstash cron configuration * Build instructions in README.md 10. Bonus Features If possible add: * Retry failed emails button * Export leads CSV * Manual send button * Recent activity section * Email preview section Folder Structure: Use professional scalable structure. Generate: * Full code * All files * Components * API routes * Database queries * Cron logic * README setup guide The app should work end-to-end after adding .env.local values and running: npm install npm run dev Make everything production-ready and beginner-friendly.
