@@ -200,6 +200,7 @@ export const GetLeadsStatus = {
 } as const;
 
 export type GetEmailLogsParams = {
+  leadId?: number;
   page?: number;
   limit?: number;
 };

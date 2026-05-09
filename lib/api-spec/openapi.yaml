@@ -333,6 +333,10 @@ paths:
       tags: [emails]
       summary: Get recent email send logs
       parameters:
+        - name: leadId
+          in: query
+          schema:
+            type: integer
         - name: page
           in: query
           schema:
