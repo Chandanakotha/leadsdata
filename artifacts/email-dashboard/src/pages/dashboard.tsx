@@ -176,7 +176,7 @@ export default function DashboardPage() {
             <CardTitle className="text-lg">Recent Activity</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 overflow-auto">
-            {activity && activity.length > 0 ? (
+            {Array.isArray(activity) && activity.length > 0 ? (
               <div className="space-y-4">
                 {activity.map((item) => (
                   <div key={item.id} className="flex items-start gap-4 text-sm">
