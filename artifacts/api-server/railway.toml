@@ -1,7 +1,5 @@
 [build]
-builder = "nixpacks"
-buildCommand = "pnpm install --frozen-lockfile && node build.mjs"
+builder = "NIXPACKS"
 
-[deploy]
-startCommand = "node dist/index.mjs"
-restartPolicyType = "always"
+[phases.install]
+cmds = ["corepack enable", "pnpm install --frozen-lockfile"]
