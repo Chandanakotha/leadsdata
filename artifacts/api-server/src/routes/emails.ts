@@ -3,6 +3,7 @@ import { eq, sql } from "drizzle-orm";
 import { db, leadsTable, emailTemplatesTable, activityLogTable, emailLogsTable } from "@workspace/db";
 import { SendEmailToLeadParams, RetryEmailForLeadParams, GetEmailLogsQueryParams } from "@workspace/api-zod";
 import { renderTemplate, sendEmail } from "../lib/email";
+import { runEmailJob } from "../lib/scheduler";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -78,27 +79,9 @@ async function sendToLead(leadId: number): Promise<{ success: boolean; error?: s
 }
 
 router.post("/emails/send", async (_req, res): Promise<void> => {
-  const pendingLeads = await db
-    .select()
-    .from(leadsTable)
-    .where(eq(leadsTable.status, "pending"));
-
-  if (pendingLeads.length === 0) {
-    res.json({ sent: 0, failed: 0, message: "No pending leads to send emails to" });
-    return;
-  }
-
-  let sent = 0;
-  let failed = 0;
-
-  for (const lead of pendingLeads) {
-    const result = await sendToLead(lead.id);
-    if (result.success) sent++;
-    else failed++;
-  }
-
-  logger.info({ sent, failed }, "Bulk email send completed");
-  res.json({ sent, failed, message: `Sent ${sent} emails, ${failed} failed` });
+  const result = await runEmailJob();
+  logger.info({ sent: result.sent, failed: result.failed }, "Bulk email send completed");
+  res.json(result);
 });
 
 router.post("/emails/send/:leadId", async (req, res): Promise<void> => {

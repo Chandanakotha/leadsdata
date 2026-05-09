@@ -1,7 +1,10 @@
 import { useState, useCallback } from "react";
 import { 
   useGetLeads, 
+  useGetDashboardStats,
   getGetLeadsQueryKey, 
+  getGetDashboardStatsQueryKey,
+  getGetDashboardActivityQueryKey,
   useDeleteLead, 
   useSendEmailToLead, 
   useRetryEmailForLead, 
@@ -14,6 +17,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Loader2, Search, Upload, Trash2, Send, RotateCw, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -25,6 +38,7 @@ export default function LeadsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [page, setPage] = useState(1);
+  const [showBulkConfirm, setShowBulkConfirm] = useState(false);
   const limit = 20;
 
   const { data, isLoading } = useGetLeads({ 
@@ -36,11 +50,17 @@ export default function LeadsPage() {
     query: { queryKey: getGetLeadsQueryKey({ search: search || undefined, status: status as any, page, limit }) } 
   });
 
+  const { data: stats } = useGetDashboardStats();
+
   const deleteLead = useDeleteLead();
   const sendEmail = useSendEmailToLead();
   const retryEmail = useRetryEmailForLead();
   const importLeads = useImportLeads();
   const sendPending = useSendPendingEmails();
+
+  const pendingCount = stats?.emailsPending ?? 0;
+  const failedCount = stats?.emailsFailed ?? 0;
+  const bulkCount = pendingCount + failedCount;
 
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -83,14 +103,17 @@ export default function LeadsPage() {
     e.target.value = "";
   }, [importLeads, queryClient]);
 
-  const onSendPending = () => {
+  const handleBulkSend = () => {
     sendPending.mutate(undefined, {
       onSuccess: (res) => {
-        toast.success(`Sent ${res.sent} emails. Failed ${res.failed}.`);
+        toast.success(`Done: ${res.sent} sent, ${res.failed} failed`);
         queryClient.invalidateQueries({ queryKey: getGetLeadsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetDashboardStatsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetDashboardActivityQueryKey() });
       },
-      onError: () => toast.error("Failed to send pending emails")
+      onError: () => toast.error("Bulk send failed"),
     });
+    setShowBulkConfirm(false);
   };
 
   return (
@@ -98,20 +121,48 @@ export default function LeadsPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Leads</h1>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={onSendPending} disabled={sendPending.isPending}>
-            <Mail className="w-4 h-4 mr-2" />
-            Send Pending
+
+          {/* Bulk Send */}
+          <Button
+            variant="default"
+            onClick={() => bulkCount > 0 ? setShowBulkConfirm(true) : toast.info("No pending or failed leads to send")}
+            disabled={sendPending.isPending}
+            className="relative"
+          >
+            {sendPending.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Mail className="w-4 h-4 mr-2" />
+            )}
+            Bulk Send
+            {bulkCount > 0 && (
+              <span className="ml-2 inline-flex items-center justify-center rounded-full bg-white/20 px-1.5 py-0.5 text-xs font-semibold">
+                {bulkCount}
+              </span>
+            )}
           </Button>
+
+          {/* Import */}
           <div className="relative">
-            <input type="file" accept=".csv,.xlsx" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={handleFileUpload} />
-            <Button disabled={importLeads.isPending}>
-              <Upload className="w-4 h-4 mr-2" />
+            <input
+              type="file"
+              accept=".csv,.xlsx"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              onChange={handleFileUpload}
+            />
+            <Button variant="secondary" disabled={importLeads.isPending}>
+              {importLeads.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4 mr-2" />
+              )}
               Import CSV/Excel
             </Button>
           </div>
         </div>
       </div>
 
+      {/* Filters */}
       <div className="flex items-center gap-4">
         <div className="relative w-72">
           <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
@@ -135,6 +186,7 @@ export default function LeadsPage() {
         </Select>
       </div>
 
+      {/* Table */}
       <Card className="bg-card">
         <Table>
           <TableHeader>
@@ -168,42 +220,57 @@ export default function LeadsPage() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{lead.company || "-"}</TableCell>
                   <TableCell>
-                    <Badge variant={lead.status === 'sent' ? 'default' : lead.status === 'failed' ? 'destructive' : 'secondary'} className={lead.status === 'sent' ? 'bg-green-600 hover:bg-green-700' : lead.status === 'pending' ? 'bg-amber-500 hover:bg-amber-600' : ''}>
+                    <Badge
+                      variant={lead.status === "sent" ? "default" : lead.status === "failed" ? "destructive" : "secondary"}
+                      className={
+                        lead.status === "sent"
+                          ? "bg-emerald-600 hover:bg-emerald-700"
+                          : lead.status === "pending"
+                          ? "bg-amber-500 hover:bg-amber-600 text-white"
+                          : ""
+                      }
+                    >
                       {lead.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
                     {format(new Date(lead.createdAt), "MMM d, yyyy")}
                   </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    {lead.status === 'pending' && (
-                      <Button size="icon" variant="ghost" onClick={() => {
+                  <TableCell className="text-right space-x-1">
+                    {lead.status === "pending" && (
+                      <Button size="icon" variant="ghost" title="Send email" onClick={() => {
                         sendEmail.mutate({ leadId: lead.id }, {
-                          onSuccess: () => { toast.success("Email sent!"); queryClient.invalidateQueries({ queryKey: getGetLeadsQueryKey() }); },
-                          onError: () => toast.error("Failed to send")
+                          onSuccess: () => { toast.success("Email sent!"); queryClient.invalidateQueries({ queryKey: getGetLeadsQueryKey() }); queryClient.invalidateQueries({ queryKey: getGetDashboardStatsQueryKey() }); },
+                          onError: () => toast.error("Failed to send"),
                         });
                       }}>
                         <Send className="w-4 h-4" />
                       </Button>
                     )}
-                    {lead.status === 'failed' && (
-                      <Button size="icon" variant="ghost" onClick={() => {
+                    {lead.status === "failed" && (
+                      <Button size="icon" variant="ghost" title="Retry email" onClick={() => {
                         retryEmail.mutate({ leadId: lead.id }, {
-                          onSuccess: () => { toast.success("Retried email!"); queryClient.invalidateQueries({ queryKey: getGetLeadsQueryKey() }); },
-                          onError: () => toast.error("Retry failed")
+                          onSuccess: () => { toast.success("Retried!"); queryClient.invalidateQueries({ queryKey: getGetLeadsQueryKey() }); queryClient.invalidateQueries({ queryKey: getGetDashboardStatsQueryKey() }); },
+                          onError: () => toast.error("Retry failed"),
                         });
                       }}>
                         <RotateCw className="w-4 h-4" />
                       </Button>
                     )}
-                    <Button size="icon" variant="ghost" className="text-destructive hover:bg-destructive/10" onClick={() => {
-                      if(confirm("Delete this lead?")) {
-                        deleteLead.mutate({ id: lead.id }, {
-                          onSuccess: () => { toast.success("Deleted!"); queryClient.invalidateQueries({ queryKey: getGetLeadsQueryKey() }); },
-                          onError: () => toast.error("Failed to delete")
-                        });
-                      }
-                    }}>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="text-destructive hover:bg-destructive/10"
+                      title="Delete lead"
+                      onClick={() => {
+                        if (confirm("Delete this lead?")) {
+                          deleteLead.mutate({ id: lead.id }, {
+                            onSuccess: () => { toast.success("Deleted"); queryClient.invalidateQueries({ queryKey: getGetLeadsQueryKey() }); queryClient.invalidateQueries({ queryKey: getGetDashboardStatsQueryKey() }); },
+                            onError: () => toast.error("Failed to delete"),
+                          });
+                        }
+                      }}
+                    >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </TableCell>
@@ -222,6 +289,44 @@ export default function LeadsPage() {
           </div>
         )}
       </Card>
+
+      {/* Bulk Send Confirmation Dialog */}
+      <AlertDialog open={showBulkConfirm} onOpenChange={setShowBulkConfirm}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Send emails to {bulkCount} leads?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-1">
+              <span className="block">
+                This will send your current email template to:
+              </span>
+              {pendingCount > 0 && (
+                <span className="block text-amber-400 font-medium">
+                  {pendingCount} pending {pendingCount === 1 ? "lead" : "leads"}
+                </span>
+              )}
+              {failedCount > 0 && (
+                <span className="block text-destructive font-medium">
+                  {failedCount} previously failed {failedCount === 1 ? "lead" : "leads"} (retry)
+                </span>
+              )}
+              <span className="block pt-1 text-muted-foreground">
+                Make sure your template is correct before sending.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkSend} disabled={sendPending.isPending}>
+              {sendPending.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Mail className="w-4 h-4 mr-2" />
+              )}
+              Send {bulkCount} emails
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
