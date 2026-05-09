@@ -2,4 +2,4 @@
 builder = "NIXPACKS"
 
 [phases.install]
-cmds = ["corepack enable", "pnpm install --frozen-lockfile"]
+cmds = ["pnpm install --frozen-lockfile"]
