@@ -1,0 +1,11 @@
+[build]
+builder = "NIXPACKS"
+
+[phases.install]
+cmds = ["pnpm install --no-frozen-lockfile"]
+
+[phases.build]
+cmds = ["pnpm --filter @workspace/api-server run build"]
+
+[start]
+cmd = "pnpm --filter @workspace/api-server run start"
