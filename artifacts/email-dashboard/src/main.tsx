@@ -5,7 +5,8 @@ import "./index.css";
 
 const apiBase = import.meta.env.VITE_API_BASE_URL;
 if (apiBase) {
-  setBaseUrl(apiBase);
+  // Remove trailing /api or /api/ to prevent double prefixing
+  setBaseUrl(apiBase.replace(/\/api\/?$/, "").replace(/\/$/, ""));
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
