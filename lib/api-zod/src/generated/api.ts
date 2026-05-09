@@ -222,7 +222,6 @@ export const getEmailLogsQueryPageDefault = 1;
 export const getEmailLogsQueryLimitDefault = 20;
 
 export const GetEmailLogsQueryParams = zod.object({
-  leadId: zod.coerce.number().optional(),
   page: zod.coerce.number().default(getEmailLogsQueryPageDefault),
   limit: zod.coerce.number().default(getEmailLogsQueryLimitDefault),
 });

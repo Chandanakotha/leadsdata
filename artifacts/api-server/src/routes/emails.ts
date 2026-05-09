@@ -170,18 +170,15 @@ router.get("/emails/logs", async (req, res): Promise<void> => {
     return;
   }
 
-  const { page, limit, leadId } = parsed.data;
+  const { page, limit } = parsed.data;
   const offset = (page - 1) * limit;
-
-  const where = leadId ? eq(emailLogsTable.leadId, leadId) : undefined;
 
   const [logs, totalResult] = await Promise.all([
     db.select().from(emailLogsTable)
-      .where(where)
       .orderBy(sql`${emailLogsTable.sentAt} DESC`)
       .limit(limit)
       .offset(offset),
-    db.select({ count: sql<number>`count(*)::int` }).from(emailLogsTable).where(where),
+    db.select({ count: sql<number>`count(*)::int` }).from(emailLogsTable),
   ]);
 
   const total = Number(totalResult[0]?.count ?? 0);
