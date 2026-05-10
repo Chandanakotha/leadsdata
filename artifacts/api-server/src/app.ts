@@ -35,11 +35,13 @@ app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.set("trust proxy", 1);
 app.use(
   session({
     secret: process.env["SESSION_SECRET"] ?? "dev-secret-change-in-production",
     resave: false,
     saveUninitialized: false,
+    proxy: true,
     cookie: {
       httpOnly: true,
       secure: process.env["NODE_ENV"] === "production",
