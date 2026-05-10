@@ -16,14 +16,22 @@ function getTransporter(): nodemailer.Transporter {
     transporter = nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
-      secure: smtpPort === 465, // true for 465, false for others
+      secure: smtpPort === 465,
       auth: {
         user: smtpUser,
         pass: smtpPass,
       },
       tls: {
-        // Do not fail on invalid certificates (helpful for some mail servers)
         rejectUnauthorized: false
+      }
+    });
+
+    // Verify connection on startup
+    transporter.verify((error, success) => {
+      if (error) {
+        logger.error({ error }, "SMTP Connection Error");
+      } else {
+        logger.info("SMTP Connection is ready to send messages");
       }
     });
   }
