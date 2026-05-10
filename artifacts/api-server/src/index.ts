@@ -1,6 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { startScheduler } from "./lib/scheduler";
+import { initEmail } from "./lib/email";
 
 const rawPort = process.env["PORT"] || "8080";
 
@@ -17,5 +18,6 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+  initEmail();
   startScheduler();
 });

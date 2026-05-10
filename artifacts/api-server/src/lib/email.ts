@@ -8,6 +8,14 @@ const smtpPass = process.env.SMTP_PASS;
 
 let transporter: nodemailer.Transporter | null = null;
 
+export function initEmail(): void {
+  try {
+    getTransporter();
+  } catch (err) {
+    logger.error({ err }, "Failed to initialize email transporter");
+  }
+}
+
 function getTransporter(): nodemailer.Transporter {
   if (!transporter) {
     if (!smtpHost || !smtpUser || !smtpPass) {
