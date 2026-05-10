@@ -1,18 +1,29 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { logger } from "./logger";
 
-const resendApiKey = process.env.RESEND_API_KEY;
+const smtpHost = process.env.SMTP_HOST;
+const smtpPort = parseInt(process.env.SMTP_PORT || "465");
+const smtpUser = process.env.SMTP_USER;
+const smtpPass = process.env.SMTP_PASS;
 
-let resend: Resend | null = null;
+let transporter: nodemailer.Transporter | null = null;
 
-function getResend(): Resend {
-  if (!resend) {
-    if (!resendApiKey) {
-      throw new Error("RESEND_API_KEY environment variable is not set");
+function getTransporter(): nodemailer.Transporter {
+  if (!transporter) {
+    if (!smtpHost || !smtpUser || !smtpPass) {
+      throw new Error("SMTP environment variables (HOST, USER, PASS) are not set");
     }
-    resend = new Resend(resendApiKey);
+    transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465, // true for 465, false for other ports
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+    });
   }
-  return resend;
+  return transporter;
 }
 
 export function renderTemplate(
@@ -31,27 +42,22 @@ export async function sendEmail(params: {
   html: string;
   from?: string;
 }): Promise<{ success: boolean; error?: string }> {
-  const fromAddress = params.from ?? process.env.RESEND_FROM_EMAIL ?? "noreply@resend.dev";
+  const fromAddress = params.from ?? process.env.SMTP_USER ?? "noreply@yourdomain.com";
 
   try {
-    const client = getResend();
-    const result = await client.emails.send({
+    const client = getTransporter();
+    await client.sendMail({
       from: fromAddress,
       to: params.to,
       subject: params.subject,
       html: params.html,
     });
 
-    if (result.error) {
-      logger.warn({ error: result.error, to: params.to }, "Resend returned error");
-      return { success: false, error: result.error.message };
-    }
-
-    logger.info({ to: params.to, id: result.data?.id }, "Email sent successfully");
+    logger.info({ to: params.to }, "Email sent successfully via SMTP");
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    logger.error({ err, to: params.to }, "Failed to send email");
+    logger.error({ err, to: params.to }, "Failed to send email via SMTP");
     return { success: false, error: message };
   }
 }
