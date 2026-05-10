@@ -1,50 +1,6 @@
-import nodemailer from "nodemailer";
 import { logger } from "./logger";
 
-const smtpHost = process.env.SMTP_HOST;
-const smtpPort = parseInt(process.env.SMTP_PORT || "465");
-const smtpUser = process.env.SMTP_USER;
-const smtpPass = process.env.SMTP_PASS;
-
-let transporter: nodemailer.Transporter | null = null;
-
-export function initEmail(): void {
-  try {
-    getTransporter();
-  } catch (err) {
-    logger.error({ err }, "Failed to initialize email transporter");
-  }
-}
-
-function getTransporter(): nodemailer.Transporter {
-  if (!transporter) {
-    if (!smtpHost || !smtpUser || !smtpPass) {
-      throw new Error("SMTP environment variables (HOST, USER, PASS) are not set");
-    }
-    transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpPort === 465,
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
-
-    // Verify connection on startup
-    transporter.verify((error, success) => {
-      if (error) {
-        logger.error({ error }, "SMTP Connection Error");
-      } else {
-        logger.info("SMTP Connection is ready to send messages");
-      }
-    });
-  }
-  return transporter;
-}
+const brevoApiKey = process.env.BREVO_API_KEY;
 
 export function renderTemplate(
   template: string,
@@ -62,22 +18,47 @@ export async function sendEmail(params: {
   html: string;
   from?: string;
 }): Promise<{ success: boolean; error?: string }> {
-  const fromAddress = params.from ?? process.env.SMTP_USER ?? "noreply@yourdomain.com";
+  if (!brevoApiKey) {
+    return { success: false, error: "BREVO_API_KEY is not set" };
+  }
+
+  const fromAddress = params.from ?? process.env.BREVO_FROM_EMAIL ?? "noreply@yourdomain.com";
+  const fromName = process.env.BREVO_FROM_NAME ?? "Outreach";
 
   try {
-    const client = getTransporter();
-    await client.sendMail({
-      from: fromAddress,
-      to: params.to,
-      subject: params.subject,
-      html: params.html,
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+        "api-key": brevoApiKey,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        sender: {
+          name: fromName,
+          email: fromAddress,
+        },
+        to: [{ email: params.to }],
+        subject: params.subject,
+        htmlContent: params.html,
+      }),
     });
 
-    logger.info({ to: params.to }, "Email sent successfully via SMTP");
+    const result = await response.json();
+
+    if (!response.ok) {
+      logger.error({ result, to: params.to }, "Brevo API returned error");
+      return { success: false, error: result.message || "Failed to send via Brevo" };
+    }
+
+    logger.info({ to: params.to, messageId: result.messageId }, "Email sent successfully via Brevo");
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    logger.error({ err, to: params.to }, "Failed to send email via SMTP");
+    logger.error({ err, to: params.to }, "Failed to send email via Brevo");
     return { success: false, error: message };
   }
 }
+
+// Dummy init for compatibility
+export function initEmail(): void {}
