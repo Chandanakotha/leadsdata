@@ -1,48 +1,55 @@
+import nodemailer from "nodemailer";
+
+const smtpHost = process.env.SMTP_HOST;
+const smtpPort = parseInt(process.env.SMTP_PORT || "587");
+const smtpUser = process.env.SMTP_USER;
+const smtpPass = process.env.SMTP_PASS;
+
+let transporter: nodemailer.Transporter | null = null;
+
+function getTransporter(): nodemailer.Transporter {
+  if (!transporter) {
+    if (!smtpHost || !smtpUser || !smtpPass) {
+      throw new Error("SMTP environment variables (HOST, USER, PASS) are not set");
+    }
+    transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+  }
+  return transporter;
+}
+
 export async function sendEmail(params: {
   to: string;
   subject: string;
   html: string;
   from?: string;
 }): Promise<{ success: boolean; error?: string }> {
-  const brevoApiKey = process.env.BREVO_API_KEY;
-
-  if (!brevoApiKey) {
-    return { success: false, error: "BREVO_API_KEY is not set" };
-  }
-
-  const fromAddress = params.from ?? process.env.BREVO_FROM_EMAIL ?? "noreply@yourdomain.com";
-  const fromName = process.env.BREVO_FROM_NAME ?? "Outreach";
+  const fromAddress = params.from ?? process.env.SMTP_USER ?? "noreply@yourdomain.com";
 
   try {
-    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "accept": "application/json",
-        "api-key": brevoApiKey,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        sender: {
-          name: fromName,
-          email: fromAddress,
-        },
-        to: [{ email: params.to }],
-        subject: params.subject,
-        htmlContent: params.html,
-      }),
+    const client = getTransporter();
+    await client.sendMail({
+      from: fromAddress,
+      to: params.to,
+      subject: params.subject,
+      html: params.html,
     });
 
-    const result = await response.json();
-
-    if (!response.ok) {
-      console.error({ result, to: params.to }, "Brevo API returned error");
-      return { success: false, error: result.message || "Failed to send via Brevo" };
-    }
-
+    console.log({ to: params.to }, "Email sent successfully via SMTP");
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error({ err, to: params.to }, "Failed to send email via Brevo");
+    console.error({ err, to: params.to }, "Failed to send email via SMTP");
     return { success: false, error: message };
   }
 }
@@ -55,4 +62,12 @@ export function renderTemplate(
     const val = variables[key];
     return val != null ? val : `{{${key}}}`;
   });
+}
+
+export function initEmail(): void {
+  try {
+    getTransporter();
+  } catch (err) {
+    console.error({ err }, "Failed to initialize email transporter");
+  }
 }
