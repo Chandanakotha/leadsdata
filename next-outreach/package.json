@@ -1,0 +1,38 @@
+{
+  "name": "next-outreach",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "clsx": "catalog:",
+    "date-fns": "^3.6.0",
+    "drizzle-orm": "catalog:",
+    "drizzle-zod": "^0.8.3",
+    "lucide-react": "catalog:",
+    "next": "^16.2.6",
+    "postgres": "^3.4.9",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "catalog:",
+    "xlsx": "^0.18.5",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "autoprefixer": "^10.5.0",
+    "drizzle-kit": "^0.31.10",
+    "postcss": "^8.5.14",
+    "tailwindcss": "catalog:",
+    "typescript": "~5.9.3"
+  }
+}
