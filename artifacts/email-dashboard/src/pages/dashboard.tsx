@@ -31,16 +31,18 @@ export default function DashboardPage() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [company, setCompany] = useState("");
 
   const handleAddLead = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email) return;
-    createLead.mutate({ data: { name, email, company, source: "manual" } }, {
+    createLead.mutate({ data: { name, email, phone, company, source: "manual" } }, {
       onSuccess: () => {
         toast.success("Lead added successfully");
         setName("");
         setEmail("");
+        setPhone("");
         setCompany("");
         queryClient.invalidateQueries({ queryKey: getGetDashboardStatsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetDashboardActivityQueryKey() });
@@ -210,6 +212,10 @@ export default function DashboardPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email</label>
                 <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="jane@example.com" className="bg-background" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Phone</label>
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 234 567 890" className="bg-background" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Company</label>

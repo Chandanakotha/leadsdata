@@ -192,6 +192,7 @@ export default function LeadsPage() {
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
               <TableHead>Name</TableHead>
+              <TableHead>Phone</TableHead>
               <TableHead>Company</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Date Added</TableHead>
@@ -218,6 +219,7 @@ export default function LeadsPage() {
                     <div className="font-medium text-foreground">{lead.name}</div>
                     <div className="text-xs text-muted-foreground">{lead.email}</div>
                   </TableCell>
+                  <TableCell className="text-muted-foreground">{lead.phone || "-"}</TableCell>
                   <TableCell className="text-muted-foreground">{lead.company || "-"}</TableCell>
                   <TableCell>
                     <Badge
